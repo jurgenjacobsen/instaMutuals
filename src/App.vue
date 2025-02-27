@@ -10,7 +10,7 @@
     data() {
       return {
         notMutualsVis: true,
-        followRequestsVis: true
+        followRequestsVis: true,
       }
     },
     methods: {
@@ -44,15 +44,17 @@
 <template>
   <main class="flex justify-center">
     <div class="grid xl:w-1/2 px-4 lg:px-0 gap-6">
-      <h1 class="mt-6 text-3xl font-bold uppercase text-left">
-        <span class="opacity-75">Welcome to</span> <span class="underline decoration-blue-700">InstaMutuals</span>
+      <h1 class="mt-6 text-3xl font-bold text-left">
+        <span class="opacity-75">Welcome to</span> <span class="underline decoration-blue-700 uppercase">InstaMutuals</span>
       </h1>
 
-      <div class="bg-zinc-800 text-zinc-600 rounded-md p-4">
+      <div class="bg-zinc-800 text-zinc-500 rounded-md p-4">
         <h1 class="text-xl font-bold uppercase text-white">Upload your Instagram data</h1>
-        <h2 class="text-lg font-semibold">Please upload your data to be analysed.</h2>
+        <h2 class="text-lg font-semibold">Please upload your data to be analysed. If you don't know how to download your data follow the tutorial below.</h2>
+        <a href="#help" class="bg-blue-700 hover:opacity-75 duration-150 text-white px-4 py-1 rounded-md mt-1 inline-block">How to download your data</a>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-4 mt-4">
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-4 mt-6">
           <div class="rounded-md outline outline-2 p-2 outline-zinc-900" 
           :class="{'outline-blue-700': following, 'outline-red-700': fileErr?.includes('following.json'), 'opacity-50 pointer-events-none': following}">
             <span class="font-bold uppercase text-sm">Upload following.json</span>
@@ -129,6 +131,37 @@
               </h1>
             </div>
           </a>
+        </div>
+      </div>
+
+      <div class="bg-zinc-800 text-zinc-500 rounded-md p-4" id="help">
+        <h1 class="text-xl font-bold uppercase text-white">How to use</h1>
+        <h2 class="text-lg font-semibold">Please follow the steps below to get started.</h2>
+        <div class="grid xl:grid-cols-2 gap-4">
+          <div>
+            <h1 class="text-lg font-semibold">Step 1</h1>
+            <img src="@/assets/tutorial/1.png" class="rounded-xl max-h-[300px]" alt="1">
+          </div>
+          <div>
+            <h1 class="text-lg font-semibold">Step 2</h1>
+            <img src="@/assets/tutorial/2.png" class="rounded-xl max-h-[300px]" alt="2">
+          </div>
+          <div>
+            <h1 class="text-lg font-semibold">Step 3</h1>
+            <img src="@/assets/tutorial/3.png" class="rounded-xl max-h-[300px]" alt="3">
+          </div>
+          <div class="align">
+            <h1 class="text-lg font-semibold">Step 4</h1>
+            <img src="@/assets/tutorial/4.png" class="rounded-xl max-h-[300px]" alt="4">
+          </div>
+          <div>
+            <h1 class="text-lg font-semibold">Step 5</h1>
+            <img src="@/assets/tutorial/5.png" class="rounded-xl max-h-[300px]" alt="5">
+          </div>
+          <div>
+            <h1 class="text-lg font-semibold">Step 6</h1>
+            <img src="@/assets/tutorial/6.png" class="rounded-xl max-h-[300px]" alt="6">
+          </div>
         </div>
       </div>
     </div>
