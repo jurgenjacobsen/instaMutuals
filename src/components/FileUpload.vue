@@ -34,6 +34,8 @@
           const file = input.files[0];
           const reader = new FileReader();
 
+          console.log(file)
+
           reader.onload = (e) => {
 
             const result = e.target?.result;
@@ -46,14 +48,12 @@
                   let i = fileErr?.value?.indexOf(props.fileRequired);
                   if (i !== -1) fileErr?.value?.splice(i,1);
 
-                  console.log(fileErr.value)
-
                   followingGlobal.value = {
                     fileName: input.files[0].name,
                     data: parsedJson.relationships_following.map((f: any) => {
                       let d = f.string_list_data[0];
                       return {
-                        username: d.value,
+                        username: f.title,
                         date: new Date(d.timestamp)
                       }
                     }),
@@ -87,7 +87,7 @@
                     data: parsedJson.relationships_follow_requests_sent.map((f: any) => {
                       let d = f.string_list_data[0];
                       return {
-                        username: d.value,
+                        username: f.title,
                         date: new Date(d.timestamp)
                       }
                     })
@@ -116,11 +116,14 @@
               let followers = followersGlobal.value.data.map((f: any) => f.username);
               let notMutuals = [];
 
+              console.log(following, followers);
+
               for (let user of following) {
                 if(!followers.includes(user)) {
                   notMutuals.push(user);
                 }
               }
+
 
               notMutualsGlobal.value = {
                 data: notMutuals,
