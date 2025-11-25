@@ -1,150 +1,176 @@
 <template>
-    <input
-        type="file"
-        accept=".json"
-        @change="handleFileUpload"
-        class="rounded-md"
-      />
+  <input
+    type="file"
+    accept=".json"
+    @change="handleFileUpload"
+    class="rounded-md"
+  />
 </template>
-  
+
 <script lang="ts">
-  // @ts-ignore
-  import { defineComponent, ref, inject, Ref } from "vue";
-  
-  export default defineComponent({
-    name: "FileUpload",
-    props: {
-      fileRequired: {
-        type: String,
-      }
-    },
-    setup(props) {
-      const fileContent = ref<string | null>(null);
-      
-      const followingGlobal = inject("following") as Ref<any>;
-      const followersGlobal = inject("followers") as Ref<any>;
-      const notMutualsGlobal = inject("notMutuals") as Ref<any>;
+import { defineComponent, ref, inject } from "vue";
+import type { Ref } from "vue";
 
-      const sentFollowRequestsGlobal = inject("sentFollowRequests") as Ref<any>;
-      const fileErr = inject("fileErr") as Ref<any>;
+interface FollowingItem {
+  username: string;
+  date: Date;
+}
 
-      const handleFileUpload = (event: Event) => {
-        const input = event.target as HTMLInputElement;
-        if (input?.files && input.files[0]) {
-          const file = input.files[0];
-          const reader = new FileReader();
+interface FollowersItem {
+  username: string;
+  date: Date;
+}
 
-          console.log(file)
+interface PendingItem {
+  username: string;
+  date: Date;
+}
 
-          reader.onload = (e) => {
+export default defineComponent({
+  name: "FileUpload",
+  props: {
+    fileRequired: String,
+  },
+  setup(props) {
+    const fileContent = ref<string | null>(null);
 
-            const result = e.target?.result;
-            if (typeof result === "string") {
-              try {
-                const parsedJson = JSON.parse(result);
-                fileContent.value = JSON.stringify(parsedJson, null, 2);
-                if(input?.files?.[0].name === "following.json" && props.fileRequired === "following.json") {
+    // Inject global stores
+    const followingGlobal = inject("following") as Ref<any>;
+    const followersGlobal = inject("followers") as Ref<any>;
+    const notMutualsGlobal = inject("notMutuals") as Ref<any>;
+    const sentFollowRequestsGlobal = inject("sentFollowRequests") as Ref<any>;
+    const fileErr = inject("fileErr") as Ref<string[]>;
 
-                  let i = fileErr?.value?.indexOf(props.fileRequired);
-                  if (i !== -1) fileErr?.value?.splice(i,1);
+    const removeFileErr = (fileName: string) => {
+      const idx = fileErr?.value?.indexOf(fileName);
+      if (idx !== -1) fileErr.value.splice(idx, 1);
+    };
 
-                  followingGlobal.value = {
-                    fileName: input.files[0].name,
-                    data: parsedJson.relationships_following.map((f: any) => {
-                      let d = f.string_list_data[0];
-                      return {
-                        username: f.title,
-                        date: new Date(d.timestamp)
-                      }
-                    }),
+    const handleFileUpload = (event: Event) => {
+      const input = event.target as HTMLInputElement;
+      if (!input.files || !input.files[0]) return;
+
+      const file = input.files[0];
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        const result = e.target?.result;
+
+        if (typeof result !== "string") return;
+
+        try {
+          const parsedJson = JSON.parse(result);
+          fileContent.value = JSON.stringify(parsedJson, null, 2);
+
+          const fileName = input.files?.[0].name;
+
+          // --------------------------
+          // FOLLOWING.JSON
+          // --------------------------
+          if (fileName === "following.json" && props.fileRequired === "following.json") {
+            removeFileErr(props.fileRequired);
+
+            followingGlobal.value = {
+              fileName,
+              data: parsedJson.relationships_following.map((f: any): FollowingItem => {
+                const d = f.string_list_data[0];
+                return {
+                  username: f.title,
+                  date: new Date(d.timestamp),
+                };
+              }),
+            };
+          }
+
+          // --------------------------
+          // FOLLOWERS_1.JSON
+          // --------------------------
+          else if (fileName === "followers_1.json" && props.fileRequired === "followers_1.json") {
+            removeFileErr(props.fileRequired);
+
+            followersGlobal.value = {
+              fileName,
+              data: parsedJson.map((f: any): FollowersItem => {
+                const d = f.string_list_data[0];
+                return {
+                  username: d.value,
+                  date: new Date(d.timestamp),
+                };
+              }),
+            };
+          }
+
+          // --------------------------
+          // PENDING_FOLLOW_REQUESTS.JSON
+          // --------------------------
+          else if (
+            fileName === "pending_follow_requests.json" &&
+            props.fileRequired === "pending_follow_requests.json"
+          ) {
+            removeFileErr(props.fileRequired);
+
+            sentFollowRequestsGlobal.value = {
+              fileName,
+              data: parsedJson.relationships_follow_requests_sent.map(
+                (f: any): PendingItem => {
+                  const d = f.string_list_data[0];
+                  return {
+                    username: f.title || d.value, // fallback because title is often ""
+                    date: new Date(d.timestamp),
                   };
-
-                } else if(input?.files?.[0].name === "followers_1.json" && props.fileRequired === "followers_1.json") {
-
-                  let i = fileErr?.value?.indexOf(props.fileRequired);
-                  if (i !== -1) fileErr?.value?.splice(i,1);
-
-                  followersGlobal.value = {
-                    fileName: input.files[0].name,
-                    data: parsedJson.map((f: any) => {
-                      let d = f.string_list_data[0];
-                      return {
-                        username: d.value,
-                        date: new Date(d.timestamp)
-                      }
-                    }),
-                  };
-
-
-
-                } else if(input?.files?.[0].name === "pending_follow_requests.json" && props.fileRequired === "pending_follow_requests.json") {
-
-                  let i = fileErr?.value?.indexOf(props.fileRequired);
-                  if (i !== -1) fileErr?.value?.splice(i,1);
-
-                  sentFollowRequestsGlobal.value = {
-                    fileName: input.files[0].name,
-                    data: parsedJson.relationships_follow_requests_sent.map((f: any) => {
-                      let d = f.string_list_data[0];
-                      return {
-                        username: f.title,
-                        date: new Date(d.timestamp)
-                      }
-                    })
-                  };
-
-
-                } else {
-
-                  if(Array.isArray(fileErr.value)) {
-                    fileErr.value.push(props.fileRequired);
-                  } else {
-                    fileErr.value = [props.fileRequired];
-                  }
-
-                  alert("Invalid JSON file - Please upload following.json, followers_1.json or pending_follow_requests.json");
-                  fileContent.value = null;
                 }
-              } catch (error) {
-                alert("Invalid JSON file");
-                fileContent.value = null;
-              }
+              ),
+            };
+          }
+
+          // --------------------------
+          // INVALID JSON TYPE
+          // --------------------------
+          else {
+            if (Array.isArray(fileErr.value)) {
+              fileErr.value.push(props.fileRequired!);
+            } else {
+              fileErr.value = [props.fileRequired!];
             }
 
-            if(followingGlobal?.value?.data && followersGlobal?.value?.data) {
-              let following = followingGlobal.value.data.map((f: any) => f.username);
-              let followers = followersGlobal.value.data.map((f: any) => f.username);
-              let notMutuals = [];
-
-              console.log(following, followers);
-
-              for (let user of following) {
-                if(!followers.includes(user)) {
-                  notMutuals.push(user);
-                }
-              }
-
-
-              notMutualsGlobal.value = {
-                data: notMutuals,
-              }
-
-            }
-          };
-  
-          reader.onerror = () => {
-            alert("Error reading file");
+            alert(
+              "Invalid JSON file - Please upload following.json, followers_1.json or pending_follow_requests.json"
+            );
             fileContent.value = null;
-          };
-  
-          reader.readAsText(file);
+            return;
+          }
+
+          // --------------------------
+          // COMPUTE NOT MUTUALS
+          // --------------------------
+          if (followingGlobal?.value?.data && followersGlobal?.value?.data) {
+            const following = followingGlobal.value.data.map((f: any) => f.username);
+            const followers = followersGlobal.value.data.map((f: any) => f.username);
+
+            const notMutuals = following.filter((u: string) => !followers.includes(u));
+
+            notMutualsGlobal.value = {
+              data: notMutuals,
+            };
+          }
+        } catch (err) {
+          alert("Invalid JSON file");
+          fileContent.value = null;
         }
       };
-  
-      return {
-        fileContent,
-        handleFileUpload,
+
+      reader.onerror = () => {
+        alert("Error reading file");
+        fileContent.value = null;
       };
-    },
-  });
+
+      reader.readAsText(file);
+    };
+
+    return {
+      fileContent,
+      handleFileUpload,
+    };
+  },
+});
 </script>
